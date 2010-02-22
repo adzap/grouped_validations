@@ -1,0 +1,55 @@
+= Grouped Validations
+
+Allows you to define validation groups in ActiveRecord for more control over what validations you want to run.
+
+This can be useful for multi-page forms or wizard style data entry.
+
+Works with Rails 2.3.5 and probably earlier. Haven't tried it with Rails 3 yet.
+
+== Installation
+
+Just install the gem
+
+ gem install grouped_validations
+
+Add it to your Rails environment gems
+
+  config.gem 'grouped_validations'
+
+== Usage
+
+Define validations as you would normally but inside a validation_group block which you pass a group
+name to.
+
+  class Person < ActiveRecord::Base
+    validation_group :name do
+      validates_presence_of :first_name
+      validates_presence_of :last_name
+    end
+
+    validates_presence_of :sex
+  end
+
+You can define validations outside the group as normal.
+
+To check for errors for only a certain group of validations
+
+  p = Person.new
+  p.group_valid?(:name) # => false
+  p.first_name = 'John'
+  p.last_name = 'Smith'
+  p.group_valid?(:name) # => true
+
+If you run the normal valid? method all validations, inside and outside validation groups, will be run.
+
+  p.valid? # => false because sex is not present
+
+You can also check validation for multiple groups
+
+  p.groups_valid?(:group1, :group2)
+
+== Credits
+
+* Adam Meehan (http://github.com/adzap)
+
+Copyright (c) 2010 Adam Meehan, released under the MIT license
