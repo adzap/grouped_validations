@@ -14,16 +14,16 @@ module GroupedValidations
 
   module ClassMethods
 
-    def validation_group(name, &block)
+    def validation_group(group, &block)
       raise "The validation_group method requires a block" unless block_given?
 
       self.validation_groups ||= []
-      self.validation_groups << name
+      self.validation_groups << group
 
-      base_name = :"validate_#{name}"
+      base_name = :"validate_#{group}"
       define_callbacks base_name, :"#{base_name}_on_create", :"#{base_name}_on_update"
 
-      @current_validation_group = name
+      @current_validation_group = group
       class_eval &block
       @current_validation_group = nil
     end
@@ -45,19 +45,19 @@ module GroupedValidations
 
   module InstanceMethods
 
-    def group_valid?(name)
-      raise "Validation group '#{name}' not defined" unless validation_groups.include?(name)
+    def group_valid?(group)
+      raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
 
       errors.clear
-      run_group_validation_callbacks name
+      run_group_validation_callbacks group
       errors.empty?
     end
 
     def groups_valid?(*groups)
       errors.clear
-      groups.each do |name|
-        raise "Validation group '#{name}' not defined" unless validation_groups.include?(name)
-        run_group_validation_callbacks name
+      groups.each do |group|
+        raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
+        run_group_validation_callbacks group
       end
       errors.empty?
     end
@@ -70,8 +70,8 @@ module GroupedValidations
       errors.empty?
     end
 
-    def run_group_validation_callbacks(name)
-      base_name = :"validate_#{name}"
+    def run_group_validation_callbacks(group)
+      base_name = :"validate_#{group}"
       run_callbacks(base_name)
       if new_record?
         run_callbacks(:"#{base_name}_on_create")
