@@ -4,7 +4,7 @@ Allows you to define validation groups in ActiveRecord for more control over wha
 
 This can be useful for multi-page forms or wizard style data entry.
 
-Works with Rails 2.3.5 and probably earlier. Haven't tried it with Rails 3 yet.
+Works with Rails 2.3 and Rails 3 (ActiveRecord only).
 
 == Installation
 
