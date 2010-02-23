@@ -23,14 +23,12 @@ module GroupedValidations
       raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
 
       errors.clear
-      @_on_validate = new_record? ? :create : :update
       run_group_validation_callbacks group
       errors.empty?
     end
 
     def groups_valid?(*groups)
       errors.clear
-      @_on_validate = new_record? ? :create : :update
       groups.each do |group|
         raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
         run_group_validation_callbacks group

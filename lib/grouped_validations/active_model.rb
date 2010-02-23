@@ -24,6 +24,7 @@ module GroupedValidations
   module InstanceMethods
 
     def run_group_validation_callbacks(group)
+      @_on_validate = new_record? ? :create : :update
       send(:"_run_validate_#{group}_callbacks")
     end
 
