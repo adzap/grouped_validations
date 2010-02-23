@@ -3,6 +3,7 @@ $:.unshift File.expand_path(File.dirname(__FILE__) + '/spec')
 
 require 'rubygems'
 require 'active_record'
+require 'active_support'
 
 require 'grouped_validations'
 

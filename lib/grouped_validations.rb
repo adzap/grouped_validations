@@ -1,17 +1,5 @@
 module GroupedValidations
 
-  def self.included(base)
-    base.extend ClassMethods
-    base.class_eval do
-      include InstanceMethods
-      class_inheritable_accessor :validation_groups
-      alias_method_chain :valid?, :groups
-      class << self
-        alias_method_chain :validation_method, :groups
-      end
-    end
-  end
-
   module ClassMethods
 
     def validation_group(group, &block)
@@ -20,25 +8,11 @@ module GroupedValidations
       self.validation_groups ||= []
       self.validation_groups << group
 
-      base_name = :"validate_#{group}"
-      define_callbacks base_name, :"#{base_name}_on_create", :"#{base_name}_on_update"
+      define_group_validation_callbacks group
 
       @current_validation_group = group
       class_eval &block
       @current_validation_group = nil
-    end
-
-    def validation_method_with_groups(on)
-      if @current_validation_group
-        base_name = :"validate_#{@current_validation_group}"
-        case on
-          when :save   then base_name
-          when :create then :"#{base_name}_on_create"
-          when :update then :"#{base_name}_on_update"
-        end
-      else
-        validation_method_without_groups on
-      end
     end
 
   end
@@ -49,12 +23,14 @@ module GroupedValidations
       raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
 
       errors.clear
+      @_on_validate = new_record? ? :create : :update
       run_group_validation_callbacks group
       errors.empty?
     end
 
     def groups_valid?(*groups)
       errors.clear
+      @_on_validate = new_record? ? :create : :update
       groups.each do |group|
         raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
         run_group_validation_callbacks group
@@ -70,18 +46,29 @@ module GroupedValidations
       errors.empty?
     end
 
-    def run_group_validation_callbacks(group)
-      base_name = :"validate_#{group}"
-      run_callbacks(base_name)
-      if new_record?
-        run_callbacks(:"#{base_name}_on_create")
-      else
-        run_callbacks(:"#{base_name}_on_update")
-      end
-    end
-
   end
 
 end
 
-ActiveRecord::Base.send :include, GroupedValidations
+ActiveRecord::Base.class_eval do
+  extend GroupedValidations::ClassMethods
+  include GroupedValidations::InstanceMethods
+  class_inheritable_accessor :validation_groups
+  alias_method_chain :valid?, :groups
+end
+
+if ActiveRecord::VERSION::MAJOR == 3
+  require 'grouped_validations/active_model'
+  ActiveRecord::Base.class_eval do
+    class << self
+      alias_method_chain :validate, :groups
+    end
+  end
+else
+  require 'grouped_validations/active_record'
+  ActiveRecord::Base.class_eval do
+    class << self
+      alias_method_chain :validation_method, :groups
+    end
+  end
+end
