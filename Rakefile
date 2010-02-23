@@ -3,9 +3,10 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'spec/rake/spectask'
+require 'lib/grouped_validations/version'
 
 GEM_NAME = "grouped_validations"
-GEM_VERSION = '0.1.0'
+GEM_VERSION = GroupedValidations::VERSION
 
 spec = Gem::Specification.new do |s|
   s.name = GEM_NAME
