@@ -48,6 +48,20 @@ You can also check validation for multiple groups
 
   p.groups_valid?(:group1, :group2)
 
+
+To define validation blocks just use the respective group validation method, like so
+
+  class Person < ActiveRecord::Base
+    validation_group :name do
+      validates_presence_of :first_name
+      validates_presence_of :last_name
+    end
+
+    validate_name           {|r| # something custom on save }
+    validate_name_on_create {|r| # something custom on create }
+    validate_name_on_update {|r| # something custom on update }
+  end
+
 == Credits
 
 * Adam Meehan (http://github.com/adzap)
