@@ -73,10 +73,9 @@ describe GroupedValidations do
     p.should have(3).errors
   end
 
-  it "should respect :on validation option" do
+  it "should respect :on => :create validation option" do
     Person.validation_group :name do
       validates_presence_of :first_name, :on => :create
-      validates_presence_of :last_name, :on => :update
     end
 
     p = Person.new
@@ -87,10 +86,27 @@ describe GroupedValidations do
     p.should have(0).errors
 
     p.save.should be_true
+    p.first_name = nil
+    p.group_valid?(:name)
+    p.should have(0).errors
+  end
+
+  it "should respect :on => :update validation option" do
+    Person.validation_group :name do
+      validates_presence_of :last_name, :on => :update
+    end
+
+    p = Person.new
+    p.last_name = nil
+    p.group_valid?(:name)
+    p.should have(0).errors
+
+    p.save.should be_true
     p.group_valid?(:name)
     p.should have(1).errors
     p.last_name = 'Smith'
     p.group_valid?(:name)
     p.should have(0).errors
   end
+
 end
