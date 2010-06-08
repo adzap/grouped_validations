@@ -9,6 +9,10 @@ describe GroupedValidations do
     Person.should respond_to(:validation_group)
   end
 
+  it "should not include instance methods by default" do
+    ActiveRecord::Base.include?(GroupedValidations::InstanceMethods).should be_false
+  end
+
   it "should store defined validation group names" do
     Person.validation_group(:dummy) { }
     Person.validation_groups.should == [:dummy]
@@ -107,6 +111,21 @@ describe GroupedValidations do
     p.last_name = 'Smith'
     p.group_valid?(:name)
     p.should have(0).errors
+  end
+
+  it "should allow a validation group to appended with subsequent blocks" do
+    Person.class_eval do
+      validation_group :name do
+        validates_presence_of :first_name
+      end
+      validation_group :name do
+        validates_presence_of :last_name
+      end
+    end
+
+    p = Person.new
+    p.group_valid?(:name)
+    p.should have(2).errors
   end
 
 end

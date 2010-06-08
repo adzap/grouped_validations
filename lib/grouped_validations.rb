@@ -5,6 +5,10 @@ module GroupedValidations
     def validation_group(group, &block)
       raise "The validation_group method requires a block" unless block_given?
 
+      unless self.include?(GroupedValidations::InstanceMethods)
+        include GroupedValidations::InstanceMethods
+      end
+
       self.validation_groups ||= []
       self.validation_groups << group
 
@@ -18,6 +22,18 @@ module GroupedValidations
   end
 
   module InstanceMethods
+    def self.included(base)
+      base.alias_method_chain :valid?, :groups
+      base.class_eval do
+        class << self
+          if ActiveRecord::VERSION::MAJOR < 3
+            alias_method_chain :validation_method, :groups
+          else
+            alias_method_chain :validate, :groups
+          end
+        end
+      end
+    end
 
     def group_valid?(group)
       raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
@@ -50,23 +66,11 @@ end
 
 ActiveRecord::Base.class_eval do
   extend GroupedValidations::ClassMethods
-  include GroupedValidations::InstanceMethods
   class_inheritable_accessor :validation_groups
-  alias_method_chain :valid?, :groups
 end
 
-if ActiveRecord::VERSION::MAJOR == 3
-  require 'grouped_validations/active_model'
-  ActiveRecord::Base.class_eval do
-    class << self
-      alias_method_chain :validate, :groups
-    end
-  end
-else
+if ActiveRecord::VERSION::MAJOR < 3
   require 'grouped_validations/active_record'
-  ActiveRecord::Base.class_eval do
-    class << self
-      alias_method_chain :validation_method, :groups
-    end
-  end
+else
+  require 'grouped_validations/active_model'
 end
