@@ -35,14 +35,6 @@ module GroupedValidations
       end
     end
 
-    def group_valid?(group)
-      raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
-
-      errors.clear
-      run_group_validation_callbacks group
-      errors.empty?
-    end
-
     def groups_valid?(*groups)
       errors.clear
       groups.each do |group|
@@ -51,6 +43,7 @@ module GroupedValidations
       end
       errors.empty?
     end
+    alias group_valid? groups_valid?
 
     def valid_with_groups?
       valid_without_groups?
