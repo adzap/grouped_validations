@@ -45,14 +45,6 @@ module GroupedValidations
     end
     alias group_valid? groups_valid?
 
-    def valid_with_groups?
-      valid_without_groups?
-      (validation_groups || []).each do |group|
-        run_group_validation_callbacks group
-      end
-      errors.empty?
-    end
-
   end
 
 end

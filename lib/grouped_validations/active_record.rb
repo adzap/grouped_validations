@@ -24,6 +24,14 @@ module GroupedValidations
 
   module InstanceMethods
 
+    def valid_with_groups?
+      valid_without_groups?
+      (validation_groups || []).each do |group|
+        run_group_validation_callbacks group
+      end
+      errors.empty?
+    end
+
     def run_group_validation_callbacks(group)
       base_name = :"validate_#{group}"
       run_callbacks(base_name)
