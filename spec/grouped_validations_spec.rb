@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe GroupedValidations do
+  let(:person) { Person.new }
+
   before do
     reset_class Person do
       attr_accessor :first_name, :last_name, :sex
@@ -18,8 +20,8 @@ describe GroupedValidations do
 
   it "it should add group_valid? method which takes a group name param" do
     Person.validation_group(:dummy) { }
-    p = Person.new
-    p.group_valid?(:dummy)
+    
+    person.group_valid?(:dummy)
   end
 
   context ".group_valid?" do
@@ -28,20 +30,19 @@ describe GroupedValidations do
         validates_presence_of :first_name
         validates_presence_of :last_name
       end
+      
+      person.group_valid?(:name)
+      person.should have(2).errors
 
-      p = Person.new
-      p.group_valid?(:name)
-      p.should have(2).errors
-
-      p.first_name = 'Dave'
-      p.last_name = 'Smith'
-      p.group_valid?(:name)
-      p.should have(0).errors
+      person.first_name = 'Dave'
+      person.last_name = 'Smith'
+      person.group_valid?(:name)
+      person.should have(0).errors
     end
 
     it "should raise exception if valiation group not defined" do
-      p = Person.new
-      lambda { p.group_valid?(:dummy) }.should raise_exception
+      
+      lambda { person.group_valid?(:dummy) }.should raise_exception
     end
 
     it "should run all validation groups passed to groups_valid?" do
@@ -53,10 +54,9 @@ describe GroupedValidations do
           validates_presence_of :last_name
         end
       end
-
-      p = Person.new
-      p.groups_valid?(:first_name_group, :last_name_group)
-      p.should have(2).errors
+      
+      person.groups_valid?(:first_name_group, :last_name_group)
+      person.should have(2).errors
     end
 
     context "with validation context" do
@@ -64,19 +64,18 @@ describe GroupedValidations do
         Person.validation_group :name do
           validates_presence_of :last_name, :on => :update
         end
+        
+        person.persisted = false
+        person.last_name = nil
+        person.group_valid?(:name, :context => :create)
+        person.should have(0).errors
 
-        p = Person.new
-        p.persisted = false
-        p.last_name = nil
-        p.group_valid?(:name, :context => :create)
-        p.should have(0).errors
-
-        p.persisted = true
-        p.group_valid?(:name, :context => :update)
-        p.should have(1).errors
-        p.last_name = 'Smith'
-        p.group_valid?(:name)
-        p.should have(0).errors
+        person.persisted = true
+        person.group_valid?(:name, :context => :update)
+        person.should have(1).errors
+        person.last_name = 'Smith'
+        person.group_valid?(:name)
+        person.should have(0).errors
       end
 
       it "should run only validations for implicit model context" do
@@ -84,19 +83,17 @@ describe GroupedValidations do
           validates_presence_of :first_name, :on => :create
         end
 
-        p = Person.new
+        person.persisted = false
+        person.group_valid?(:name)
+        person.should have(1).errors
+        person.first_name = 'Dave'
+        person.group_valid?(:name)
+        person.should have(0).errors
 
-        p.persisted = false
-        p.group_valid?(:name)
-        p.should have(1).errors
-        p.first_name = 'Dave'
-        p.group_valid?(:name)
-        p.should have(0).errors
-
-        p.persisted = true
-        p.first_name = nil
-        p.group_valid?(:name)
-        p.should have(0).errors
+        person.persisted = true
+        person.first_name = nil
+        person.group_valid?(:name)
+        person.should have(0).errors
       end
 
     end
@@ -114,10 +111,9 @@ describe GroupedValidations do
 
         validates_presence_of :sex
       end
-
-      p = Person.new
-      p.valid?
-      p.should have(3).errors
+      
+      person.valid?
+      person.should have(3).errors
     end
   end
 
@@ -132,10 +128,10 @@ describe GroupedValidations do
   #     end
   #   end
 
-  #   p = Person.new
-  #   p.group_valid?(:name)
-  #   puts p.errors.inspect
-  #   p.should have(2).errors
+  #   
+  #   person.group_valid?(:name)
+  #   puts person.errors.inspect
+  #   person.should have(2).errors
   # end
 
 end
