@@ -78,6 +78,27 @@ describe GroupedValidations do
         p.group_valid?(:name)
         p.should have(0).errors
       end
+
+      it "should run only validations for implicit model context" do
+        Person.validation_group :name do
+          validates_presence_of :first_name, :on => :create
+        end
+
+        p = Person.new
+
+        p.persisted = false
+        p.group_valid?(:name)
+        p.should have(1).errors
+        p.first_name = 'Dave'
+        p.group_valid?(:name)
+        p.should have(0).errors
+
+        p.persisted = true
+        p.first_name = nil
+        p.group_valid?(:name)
+        p.should have(0).errors
+      end
+
     end
   end
 

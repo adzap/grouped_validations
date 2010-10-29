@@ -45,6 +45,7 @@ module GroupedValidations
 
     def groups_valid?(*groups)
       options = groups.extract_options!
+      options[:context] ||= (persisted? ? :update : :create)
       errors.clear
       groups.each do |group|
         raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)

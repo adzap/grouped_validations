@@ -8,8 +8,9 @@ require 'grouped_validations'
 class TestModel
   include ActiveSupport::Callbacks
   include ActiveModel::Validations
+  attr_accessor :persisted
 
-  def persisted?; false; end
+  def persisted?; persisted; end
 end
 
 class Person < TestModel
