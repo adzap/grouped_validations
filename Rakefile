@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rubygems/specification'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 require 'lib/grouped_validations/version'
 
 GEM_NAME = "grouped_validations"
@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = GEM_NAME
   s.has_rdoc = true
   s.extra_rdoc_files = ["README.rdoc"]
-  s.summary = "Define validation groups in ActiveRecord for greater control over which validations to run."
+  s.summary = "Define validation groups in a model for greater control over which validations are run."
   s.description = s.summary
   s.author = "Adam Meehan"
   s.email = "adam.meehan@gmail.com"
@@ -32,16 +32,14 @@ task :default => :spec
 spec_files = Rake::FileList["spec/**/*_spec.rb"]
 
 desc "Run specs"
-Spec::Rake::SpecTask.new do |t|
-  t.spec_files = spec_files
-  t.spec_opts = ["-c"]
+RSpec::Core::RakeTask.new do |t|
+  t.pattern = "./spec/**/*_spec.rb" # don't need this, it's default.
 end
 
 desc "Generate code coverage"
-Spec::Rake::SpecTask.new(:coverage) do |t|
-  t.spec_files = spec_files
+RSpec::Core::RakeTask.new(:coverage) do |t|
   t.rcov = true
-  t.rcov_opts = ['--exclude', 'spec,/var/lib/gems']
+  t.rcov_opts = ['--exclude', 'spec']
 end
 
 desc 'Generate documentation for plugin.'

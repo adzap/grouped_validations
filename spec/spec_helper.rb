@@ -1,36 +1,32 @@
-$:.unshift File.expand_path(File.dirname(__FILE__) + '/lib')
-$:.unshift File.expand_path(File.dirname(__FILE__) + '/spec')
+require 'rspec'
 
-require 'rubygems'
-require 'active_record'
 require 'active_support'
+require 'active_model'
 
 require 'grouped_validations'
 
-ActiveRecord::Migration.verbose = false
-ActiveRecord::Base.establish_connection({:adapter => 'sqlite3', :database => ':memory:'})
+class TestModel
+  include ActiveSupport::Callbacks
+  include ActiveModel::Validations
 
-ActiveRecord::Schema.define(:version => 1) do
-  create_table :people, :force => true do |t|
-    t.string   :first_name
-    t.string   :last_name
-    t.integer  :sex
-  end
+  def persisted?; false; end
 end
 
-class Person < ActiveRecord::Base
+class Person < TestModel
+  attr_accessor :first_name, :last_name, :sex
 end
 
 module SpecHelper
   def reset_class(klass, &block)
+    superklass = klass.superclass
     name = klass.name.to_sym
     Object.send(:remove_const, name)
-    Object.const_set(name, Class.new(ActiveRecord::Base))
+    Object.const_set(name, Class.new(superklass))
     new_klass = Object.const_get(name)
     new_klass.class_eval &block if block_given?
   end
 end
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
   config.include SpecHelper
 end

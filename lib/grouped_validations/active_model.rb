@@ -1,43 +1,26 @@
-module GroupedValidations
+module ActiveModel
+  module Validations
 
-  module ClassMethods
+    module ClassMethods
 
-    def define_group_validation_callbacks(group)
-      define_callbacks :"validate_#{group}", :terminator => "result == false", :scope => 'validate'
-    end
+      def validation_group(group, &block)
+        raise "The validation_group method requires a block" unless block_given?
 
-    def validate_with_groups(*args, &block)
-      if @current_validation_group
-        options = args.last
-        if options.is_a?(Hash) && options.key?(:on)
-          options[:if] = Array(options[:if])
-          options[:if] << "self.validation_context == :#{options[:on]}"
+        unless include?(GroupedValidations)
+          include GroupedValidations
         end
-        set_callback(:"validate_#{@current_validation_group}", *args, &block)
-      else
-        validate_without_groups(*args, &block)
+
+        self.validation_groups ||= []
+        self.validation_groups << group
+
+        _define_group_validation_callbacks(group)
+
+        @current_validation_group = group
+        class_eval &block
+        @current_validation_group = nil
       end
+
     end
 
   end
-
-  module InstanceMethods
-
-    def valid_with_groups?(context=nil)
-      valid_without_groups?(context)
-      (validation_groups || []).each do |group|
-        run_group_validation_callbacks group
-      end
-      errors.empty?
-    end
-
-    def run_group_validation_callbacks(group)
-      current_context, self.validation_context = validation_context, (new_record? ? :create : :update)
-      send(:"_run_validate_#{group}_callbacks")
-    ensure
-      self.validation_context = current_context
-    end
-
-  end
-
 end
