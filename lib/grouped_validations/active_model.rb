@@ -3,7 +3,7 @@ module ActiveModel
 
     module ClassMethods
 
-      def validation_group(group, &block)
+      def validation_group(group, options={}, &block)
         raise "The validation_group method requires a block" unless block_given?
 
         unless include?(GroupedValidations)
@@ -15,7 +15,9 @@ module ActiveModel
 
         _define_group_validation_callbacks(group)
 
-        @current_validation_group = group
+        options[:name] = group
+
+        @current_validation_group = options
         class_eval &block
         @current_validation_group = nil
       end

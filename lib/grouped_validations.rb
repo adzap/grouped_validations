@@ -12,14 +12,15 @@ module GroupedValidations
 
     def validate(*args, &block)
       if @current_validation_group
-        options = args.extract_options!
+        options = args.extract_options!.dup
+        options.reverse_merge!(@current_validation_group.except(:name))
         if options.key?(:on)
           options = options.dup
           options[:if] = Array.wrap(options[:if])
           options[:if] << "validation_context == :#{options[:on]}"
         end
         args << options
-        set_callback(:"validate_#{@current_validation_group}", *args, &block)
+        set_callback(:"validate_#{@current_validation_group[:name]}", *args, &block)
       else
         super
       end

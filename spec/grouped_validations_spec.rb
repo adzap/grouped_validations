@@ -99,6 +99,29 @@ describe GroupedValidations do
     end
   end
 
+  context "group options" do
+    it 'should pass option for group to validations' do
+      Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+        validates_presence_of :first_name
+      end
+
+      person.group_valid?(:name)
+      person.should have(1).errors
+      person.last_name = 'Smith'
+      person.group_valid?(:name)
+      person.should have(0).errors
+    end
+
+    it 'should not override existing validation options' do
+      Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+        validates_presence_of :first_name, :if =>  lambda { false }
+      end
+
+      person.group_valid?(:name)
+      person.should have(0).errors
+    end
+  end
+
   context ".valid?" do
     it "should run all validation including groups when valid? method called" do
       Person.class_eval do
