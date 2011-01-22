@@ -62,6 +62,62 @@ To define validation blocks just use the respective group validation method, lik
     validate_name_on_update {|r| # something custom on update }
   end
 
+
+== Group Options
+
+You can use a validation group like similar to the with_options method, but for validation methods only.
+
+If you pass in an options hash, those options will be applied to each valiation method in the block.
+
+  validation_group :name, :if => :ready? do
+    validates_presence_of :first_name
+    validates_presence_of :last_name
+  end
+
+Which effectively the same as doing the following:
+
+    validates_presence_of :first_name, :if => :ready?
+    validates_presence_of :last_name, :if => :ready?
+
+If you set an option for a specific validation method, it will not be overriden with the validation group
+options.
+
+  validation_group :name, :if => :ready? do
+    validates_presence_of :first_name
+    validates_presence_of :last_name, :if => {|r| !r.popstar? }
+  end
+
+The last_name attribute will be required unless the person is a popstar.
+
+The options should work for any validation method which calls the validate class method internally. This includes
+all the default validations.
+
+
+== Grouped Errors
+
+The errors for the model can be returned as hash with the group names as the keys. If you have a number of groups
+you can deal with the error messages in specific ways per group.
+
+  validation_group :name do
+    validates_presence_of :first_name
+    validates_presence_of :last_name
+  end
+
+  validates_presence_of :sex
+
+To access all errors outside of a validation group, use nil as the key:
+
+  person.grouped_errors[nil]
+
+Use the group name as the key for all errors in that group:
+
+  person.grouped_errors[:name]
+
+Be aware that the validations will all be run. If you have just called <tt>valid?</tt> then the same validations will be run
+again and the current state of the object is used. This is for consideration if the validations are expensive, time
+sensitive or you have changed the object after calling <tt>valid?</tt>.
+
+
 == Credits
 
 * Adam Meehan (http://github.com/adzap)
