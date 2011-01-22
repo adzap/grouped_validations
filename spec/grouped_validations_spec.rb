@@ -4,9 +4,7 @@ describe GroupedValidations do
   let(:person) { Person.new }
 
   before do
-    reset_class Person do
-      attr_accessor :first_name, :last_name, :sex
-    end
+    reset_class Person
   end
 
   it "should add validation_group class method" do
@@ -122,8 +120,8 @@ describe GroupedValidations do
     end
   end
 
-  context ".valid?" do
-    it "should run all validation including groups when valid? method called" do
+  describe "#grouped_errors" do
+    before do
       Person.class_eval do
         validation_group :first_name_group do
           validates_presence_of :first_name
@@ -131,13 +129,23 @@ describe GroupedValidations do
         validation_group :last_name_group do
           validates_presence_of :last_name
         end
-
         validates_presence_of :sex
       end
-      
-      person.valid?
-      person.should have(3).errors
     end
+
+    it 'should return hash of error hashes with validation groups as keys' do
+      person.valid?
+      errors = person.grouped_errors
+      errors[:first_name_group].should == {:first_name => ["can't be blank"]}
+      errors[:last_name_group].should  == {:last_name  => ["can't be blank"]}
+    end
+
+    it 'should return hash of errors for validations outside a validation group, for nil key' do
+      person.valid?
+      errors = person.grouped_errors
+      errors[nil][:sex].should == ["can't be blank"]
+    end
+
   end
 
   # Can no longer be done. Unless I find a work around.

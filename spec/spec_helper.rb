@@ -8,13 +8,12 @@ require 'grouped_validations'
 class TestModel
   include ActiveSupport::Callbacks
   include ActiveModel::Validations
-  attr_accessor :persisted
 
-  def persisted?; persisted; end
+  attr_accessor :persisted, :first_name, :last_name, :sex
+  alias_method :persisted?, :persisted
 end
 
 class Person < TestModel
-  attr_accessor :first_name, :last_name, :sex
 end
 
 module SpecHelper
