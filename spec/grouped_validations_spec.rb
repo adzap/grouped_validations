@@ -165,6 +165,16 @@ describe GroupedValidations do
       errors[nil][:sex].should == ["can't be blank"]
     end
 
+    it 'should be empty for each key if no errors' do
+      person.first_name = 'Dave'
+      person.last_name = 'Smith'
+      person.sex = 'Male'
+
+      person.grouped_errors[nil].should be_empty
+      person.grouped_errors[:first_name_group].should be_empty
+      person.grouped_errors[:last_name_group].should be_empty
+    end
+
   end
 
   # Can no longer be done. Unless I find a work around.
