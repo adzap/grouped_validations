@@ -56,9 +56,7 @@ module GroupedValidations
     alias group_valid? groups_valid?
 
     def grouped_errors(context=nil)
-      return errors if errors.empty?
-
-      original_errors = @errors.dup
+      original_errors = @errors.dup if @errors
       @errors = nil
       grouped = {}
 
