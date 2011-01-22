@@ -5,7 +5,7 @@ module GroupedValidations
   extend ActiveSupport::Concern
 
   included do
-    class_inheritable_accessor :validation_groups
+    class_attribute :validation_groups
   end
 
   module ClassMethods

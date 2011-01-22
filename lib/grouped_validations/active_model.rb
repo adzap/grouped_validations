@@ -11,7 +11,7 @@ module ActiveModel
         end
 
         self.validation_groups ||= []
-        self.validation_groups << group
+        self.validation_groups  += [ group ]
 
         _define_group_validation_callbacks(group)
 
