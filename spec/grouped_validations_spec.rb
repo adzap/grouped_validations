@@ -11,18 +11,44 @@ describe GroupedValidations do
     Person.should respond_to(:validation_group)
   end
 
-  it "should store defined validation group names" do
-    Person.validation_group(:dummy) { }
-    Person.validation_groups.should == [:dummy]
+  describe ".validation_group" do
+    it "should store defined validation group names" do
+      Person.validation_group(:dummy) { }
+      Person.validation_groups.should == [:dummy]
+    end
+
+    it "it should add group_valid? method which takes a group name param" do
+      Person.validation_group(:dummy) { }
+      
+      person.group_valid?(:dummy)
+    end
+
+    context "with options" do
+      it 'should pass option for group to validations' do
+        Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+          validates_presence_of :first_name
+        end
+
+        person.group_valid?(:name)
+        person.should have(1).errors
+
+        person.last_name = 'Smith'
+        person.group_valid?(:name)
+        person.should have(0).errors
+      end
+
+      it 'should not override explicit validation method options' do
+        Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+          validates_presence_of :first_name, :if =>  lambda { false }
+        end
+
+        person.group_valid?(:name)
+        person.should have(0).errors
+      end
+    end
   end
 
-  it "it should add group_valid? method which takes a group name param" do
-    Person.validation_group(:dummy) { }
-    
-    person.group_valid?(:dummy)
-  end
-
-  context ".group_valid?" do
+  describe "#group_valid?" do
     it "should run the validations defined inside the validation group" do
       Person.validation_group :name do
         validates_presence_of :first_name
@@ -39,8 +65,7 @@ describe GroupedValidations do
     end
 
     it "should raise exception if valiation group not defined" do
-      
-      lambda { person.group_valid?(:dummy) }.should raise_exception
+      expect { person.group_valid?(:dummy) }.should raise_exception
     end
 
     it "should run all validation groups passed to groups_valid?" do
@@ -71,6 +96,7 @@ describe GroupedValidations do
         person.persisted = true
         person.group_valid?(:name, :context => :update)
         person.should have(1).errors
+
         person.last_name = 'Smith'
         person.group_valid?(:name)
         person.should have(0).errors
@@ -84,6 +110,7 @@ describe GroupedValidations do
         person.persisted = false
         person.group_valid?(:name)
         person.should have(1).errors
+
         person.first_name = 'Dave'
         person.group_valid?(:name)
         person.should have(0).errors
@@ -97,26 +124,20 @@ describe GroupedValidations do
     end
   end
 
-  context "group options" do
-    it 'should pass option for group to validations' do
-      Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
-        validates_presence_of :first_name
+  describe "#valid?" do
+    it "should run all validation including groups when valid? method called" do
+      Person.class_eval do
+        validation_group :first_name_group do
+          validates_presence_of :first_name
+        end
+        validation_group :last_name_group do
+          validates_presence_of :last_name
+        end
+        validates_presence_of :sex
       end
-
-      person.group_valid?(:name)
-      person.should have(1).errors
-      person.last_name = 'Smith'
-      person.group_valid?(:name)
-      person.should have(0).errors
-    end
-
-    it 'should not override existing validation options' do
-      Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
-        validates_presence_of :first_name, :if =>  lambda { false }
-      end
-
-      person.group_valid?(:name)
-      person.should have(0).errors
+      
+      person.valid?
+      person.should have(3).errors
     end
   end
 
