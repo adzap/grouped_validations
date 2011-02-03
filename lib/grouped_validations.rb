@@ -38,10 +38,8 @@ module GroupedValidations
 
     def valid?(context=nil)
       super
-      if validation_groups
-        validation_groups.each do |group|
-          _run_group_validation_callbacks(group, context)
-        end
+      validation_groups.each do |group|
+        _run_group_validation_callbacks(group, context)
       end
       errors.empty?
     end
@@ -66,7 +64,7 @@ module GroupedValidations
         _run_validate_callbacks
         grouped[nil] = @errors
 
-        validation_groups && validation_groups.each do |group|
+        validation_groups.each do |group|
           @errors = nil
           send(:"_run_validate_#{group}_callbacks")
           grouped[group] = @errors
