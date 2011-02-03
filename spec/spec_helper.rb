@@ -1,6 +1,6 @@
 require 'rspec'
 
-require 'active_support'
+require 'active_support/all'
 require 'active_model'
 
 require 'grouped_validations'

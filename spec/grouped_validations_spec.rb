@@ -13,46 +13,99 @@ describe GroupedValidations do
 
   describe ".validation_group" do
     it "should store defined validation group names" do
-      Person.validation_group(:dummy) { }
+      Person.class_eval do
+        validation_group(:dummy) { }
+      end
       Person.validation_groups.should == [:dummy]
     end
 
     it "it should add group_valid? method which takes a group name param" do
-      Person.validation_group(:dummy) { }
+      Person.class_eval do
+        validation_group(:dummy) { }
+      end
       
       person.group_valid?(:dummy)
     end
 
     context "with options" do
-      it 'should pass option for group to validations' do
-        Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
-          validates_presence_of :first_name
+      context "as implicit block" do
+        it 'should pass options for group to validations' do
+          Person.class_eval do
+            validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+              validates_presence_of :first_name
+            end
+          end
+
+          person.group_valid?(:name)
+          person.should have(1).errors
+
+          person.last_name = 'smith'
+          person.group_valid?(:name)
+          person.should have(0).errors
         end
 
-        person.group_valid?(:name)
-        person.should have(1).errors
+        it 'should not override explicit validation method options' do
+          Person.class_eval do
+            validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+              validates_presence_of :first_name, :if =>  lambda { false }
+            end
+          end
 
-        person.last_name = 'Smith'
-        person.group_valid?(:name)
-        person.should have(0).errors
+          person.group_valid?(:name)
+          person.should have(0).errors
+        end
       end
 
-      it 'should not override explicit validation method options' do
-        Person.validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
-          validates_presence_of :first_name, :if =>  lambda { false }
+      context "as block argument" do
+        it 'should pass options for group to validations' do
+          Person.class_eval do
+            validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do |options|
+              options.validates_presence_of :first_name
+            end
+          end
+
+          person.group_valid?(:name)
+          person.should have(1).errors
+
+          person.last_name = 'smith'
+          person.group_valid?(:name)
+          person.should have(0).errors
         end
 
-        person.group_valid?(:name)
-        person.should have(0).errors
+        it 'should not override explicit options' do
+          Person.class_eval do
+            validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do |options|
+              options.validates_presence_of :first_name, :if =>  lambda { false }
+            end
+          end
+
+          person.group_valid?(:name)
+          person.should have(0).errors
+        end
+
+        it 'should not apply options to validations methods not using block argument' do
+          Person.class_eval do
+            validation_group(:name, :if => lambda {|r| false }) do |options|
+              options.validates_presence_of :first_name
+              validates_presence_of :last_name
+            end
+          end
+
+          person.group_valid?(:name)
+          person.errors[:first_name].should be_empty
+          person.errors[:last_name].should_not be_empty
+        end
       end
     end
   end
 
   describe "#group_valid?" do
     it "should run the validations defined inside the validation group" do
-      Person.validation_group :name do
-        validates_presence_of :first_name
-        validates_presence_of :last_name
+      Person.class_eval do
+        validation_group :name do
+          validates_presence_of :first_name
+          validates_presence_of :last_name
+        end
       end
       
       person.group_valid?(:name)
@@ -84,8 +137,10 @@ describe GroupedValidations do
 
     context "with validation context" do
       it "should run only validations for explicit context" do
-        Person.validation_group :name do
-          validates_presence_of :last_name, :on => :update
+        Person.class_eval do
+          validation_group :name do
+            validates_presence_of :last_name, :on => :update
+          end
         end
         
         person.persisted = false
@@ -103,8 +158,10 @@ describe GroupedValidations do
       end
 
       it "should run only validations for implicit model context" do
-        Person.validation_group :name do
-          validates_presence_of :first_name, :on => :create
+        Person.class_eval do
+          validation_group :name do
+            validates_presence_of :first_name, :on => :create
+          end
         end
 
         person.persisted = false

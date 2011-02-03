@@ -6,24 +6,26 @@ module GroupedValidations
 
   included do
     class_attribute :validation_groups
+    self.validation_groups = []
   end
 
   module ClassMethods
 
     def validate(*args, &block)
-      if @current_validation_group
-        options = args.extract_options!.dup
-        options.reverse_merge!(@current_validation_group.except(:name))
-        if options.key?(:on)
-          options = options.dup
-          options[:if] = Array.wrap(options[:if])
-          options[:if] << "validation_context == :#{options[:on]}"
-        end
-        args << options
-        set_callback(:"validate_#{@current_validation_group[:name]}", *args, &block)
-      else
-        super
+      return super unless @_current_validation_group
+
+      options = args.extract_options!.dup
+      unless @_current_validation_group[:with_options]
+        options.reverse_merge!(@_current_validation_group.except(:name)) 
       end
+
+      if options.key?(:on)
+        options = options.dup
+        options[:if] = Array.wrap(options[:if])
+        options[:if] << "validation_context == :#{options[:on]}"
+      end
+      args << options
+      set_callback(:"validate_#{@_current_validation_group[:name]}", *args, &block)
     end
 
     def _define_group_validation_callbacks(group)

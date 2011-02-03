@@ -17,9 +17,16 @@ module ActiveModel
 
         options[:name] = group
 
-        @current_validation_group = options
-        class_eval &block
-        @current_validation_group = nil
+        if block.arity == 1
+          @_current_validation_group = options.merge(:with_options => true)
+          with_options(options) do |config|
+            yield config
+          end
+        else
+          @_current_validation_group = options
+          yield
+        end
+        @_current_validation_group = nil
       end
 
     end
