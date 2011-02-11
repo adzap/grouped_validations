@@ -46,7 +46,7 @@ describe GroupedValidations do
 
         it 'should not override explicit validation method options' do
           Person.class_eval do
-            validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do
+            validation_group(:name, :if => lambda { true }) do
               validates_presence_of :first_name, :if =>  lambda { false }
             end
           end
@@ -75,7 +75,7 @@ describe GroupedValidations do
         it 'should not override explicit options' do
           Person.class_eval do
             validation_group(:name, :if => lambda {|r| r.last_name.nil? }) do |options|
-              options.validates_presence_of :first_name, :if =>  lambda { false }
+              options.validates_presence_of :first_name, :if => lambda { false }
             end
           end
 
@@ -85,7 +85,7 @@ describe GroupedValidations do
 
         it 'should not apply options to validations methods not using block argument' do
           Person.class_eval do
-            validation_group(:name, :if => lambda {|r| false }) do |options|
+            validation_group(:name, :if => lambda { false }) do |options|
               options.validates_presence_of :first_name
               validates_presence_of :last_name
             end

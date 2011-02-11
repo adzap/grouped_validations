@@ -53,7 +53,7 @@ module GroupedValidations
       end
       errors.empty?
     end
-    alias group_valid? groups_valid?
+    alias_method :group_valid?, :groups_valid?
 
     def grouped_errors(context=nil)
       original_errors = @errors.dup if @errors
