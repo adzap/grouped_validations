@@ -18,7 +18,7 @@ module ActiveModel
 
         if block.arity == 1
           @_current_validation_group = options.merge(:with_options => true)
-          with_options(options) do |config|
+          with_options(options.except(:name)) do |config|
             yield config
           end
         else
