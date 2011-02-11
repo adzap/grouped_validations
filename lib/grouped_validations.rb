@@ -70,7 +70,7 @@ module GroupedValidations
           grouped[group] = @errors
         end
       end
-      grouped
+      grouped.values.all?(&:empty?) ? {} : grouped
     ensure
       @errors = original_errors
     end
