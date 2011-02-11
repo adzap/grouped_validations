@@ -1,10 +1,12 @@
 = Grouped Validations
 
-Allows you to define validation groups in ActiveRecord for more control over what validations you want to run.
+Allows you to define ActiveModel validation groups for more control over what validations you want to run.
 
 This can be useful for multi-page forms or wizard style data entry.
 
-Works with Rails 2.3 and Rails 3 (ActiveRecord only).
+Works with Rails 3.
+
+For Rails 2.x support, try version 0.2.2.
 
 == Installation
 
@@ -15,6 +17,7 @@ Just install the gem
 Add it to your Rails environment gems
 
   config.gem 'grouped_validations'
+
 
 == Usage
 
@@ -92,6 +95,17 @@ The last_name attribute will be required unless the person is a popstar.
 The options should work for any validation method which calls the validate class method internally. This includes
 all the default validations.
 
+For more precision on when to merge the groups options you can pass an argument to the block and use it like a
+with_options call. Then only those validation methods call on the argument will have the options merged in.
+
+  validation_group :name, :if => :ready? do |options|
+    # Options merged
+    options.validates_presence_of :first_name
+
+    # No options merged
+    validates_presence_of :last_name
+  end
+
 
 == Grouped Errors
 
@@ -117,9 +131,16 @@ Be aware that the validations will all be run. If you have just called <tt>valid
 again and the current state of the object is used. This is for consideration if the validations are expensive, time
 sensitive or you have changed the object after calling <tt>valid?</tt>.
 
+You can use the <tt>grouped_errors</tt> method instead of <tt>valid?</tt> to check on a valid object like so:
+
+  # Validations all run
+  if person.grouped_errors.empty?
+    # object is valid
+  end
+
 
 == Credits
 
 * Adam Meehan (http://github.com/adzap)
 
-Copyright (c) 2010 Adam Meehan, released under the MIT license
+Copyright (c) 2010-2011 Adam Meehan, released under the MIT license
