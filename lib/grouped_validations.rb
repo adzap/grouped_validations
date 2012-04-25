@@ -65,7 +65,7 @@ module GroupedValidations
       validation_groups.each do |group|
         @errors = nil
         send(:"_run_validate_#{group}_callbacks")
-        grouped[group] = @errors
+        grouped[group] = (@errors.respond_to?(:messages) ? @errors.messages : @errors)
       end
     end
     grouped.values.all?(&:empty?) ? {} : grouped
