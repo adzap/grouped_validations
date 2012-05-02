@@ -213,8 +213,9 @@ describe GroupedValidations do
 
     it 'should return hash of error hashes with validation groups as keys' do
       errors = person.grouped_errors
-      errors[:first_name_group].should == {:first_name => ["can't be blank"]}
-      errors[:last_name_group].should  == {:last_name  => ["can't be blank"]}
+
+      errors[:first_name_group][:first_name].should eq ["can't be blank"]
+      errors[:last_name_group][:last_name].should eq ["can't be blank"]
     end
 
     it 'should return hash of errors for validations outside a validation group, for nil key' do
