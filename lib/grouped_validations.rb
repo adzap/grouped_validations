@@ -60,12 +60,12 @@ module GroupedValidations
 
     with_validation_context(context) do
       _run_validate_callbacks
-      grouped[nil] = @errors
+      grouped[nil] = errors
 
       validation_groups.each do |group|
         @errors = nil
         send(:"_run_validate_#{group}_callbacks")
-        grouped[group] = @errors
+        grouped[group] = errors
       end
     end
     grouped.values.all?(&:empty?) ? {} : grouped
