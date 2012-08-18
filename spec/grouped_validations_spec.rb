@@ -231,6 +231,22 @@ describe GroupedValidations do
       person.grouped_errors.should be_empty
     end
 
+    it 'should allow empty check on a group even when no errors for any group' do
+      person.first_name = 'Dave'
+      person.last_name = 'Smith'
+      person.sex = 'Male'
+
+      person.grouped_errors[:first_name_group].should be_empty
+      person.grouped_errors[:not_a_group].should be_nil
+    end
+
+    it 'should be empty for group with no errors while other groups have errors' do
+      person.first_name = nil
+      person.last_name = 'Smith'
+      person.sex = 'Male'
+
+      person.grouped_errors[:last_name_group].should be_empty
+    end
   end
 
   # Can no longer be done. Unless I find a work around.

@@ -68,7 +68,7 @@ module GroupedValidations
         grouped[group] = errors
       end
     end
-    grouped.values.all?(&:empty?) ? {} : grouped
+    grouped.values.all?(&:empty?) ? Hash.new { |h,k| {} if validation_groups.include?(k) } : grouped
   ensure
     @errors = original_errors
   end
