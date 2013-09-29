@@ -10,14 +10,16 @@ module ActiveModel
           include GroupedValidations
         end
 
-        self.validation_groups += [ group ]
-
-        _define_group_validation_callbacks(group)
+        unless validation_groups.include?(group)
+          validation_groups << group
+          _define_group_validation_callbacks(group)
+        end
 
         options[:name] = group
 
         if block.arity == 1
           @_current_validation_group = options.merge(:with_options => true)
+          
           with_options(options.except(:name)) do |config|
             yield config
           end

@@ -27,6 +27,24 @@ describe GroupedValidations do
       person.group_valid?(:dummy)
     end
 
+    it "it should not overwrite group when defined again" do
+      Person.class_eval do
+        validation_group(:name) { 
+          validates_presence_of :first_name
+        }
+
+        validation_group(:name) { 
+          validates_presence_of :last_name
+        }
+      end
+      
+      person.group_valid?(:name)
+      
+      person.should have(2).errors
+      person.errors[:first_name].should_not be_empty
+      person.errors[:last_name].should_not be_empty
+    end
+
     context "with options" do
       context "as implicit block" do
         it 'should pass options for group to validations' do
