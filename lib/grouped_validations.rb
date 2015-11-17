@@ -1,5 +1,6 @@
 require 'active_model/validations'
 require 'grouped_validations/active_model'
+require 'grouped_validations/callback'
 
 module GroupedValidations
   extend ActiveSupport::Concern
@@ -29,7 +30,7 @@ module GroupedValidations
     end
 
     def _define_group_validation_callbacks(group)
-      define_callbacks :"validate_#{group}", :scope => 'validate'
+      define_callbacks :"validate_#{group}", :scope => :callback_method, callback_method: :validate
     end
 
   end
@@ -45,6 +46,7 @@ module GroupedValidations
   def groups_valid?(*groups)
     options = groups.extract_options!
     errors.clear
+    run_validations!
     groups.each do |group|
       raise "Validation group '#{group}' not defined" unless validation_groups.include?(group)
       _run_group_validation_callbacks(group, options[:context])
@@ -59,12 +61,12 @@ module GroupedValidations
     grouped = {}
 
     with_validation_context(context) do
-      _run_validate_callbacks
+      run_callbacks(:validate)
       grouped[nil] = errors
 
       validation_groups.each do |group|
         @errors = nil
-        send(:"_run_validate_#{group}_callbacks")
+        run_callbacks(:"validate_#{group}")
         grouped[group] = errors
       end
     end
@@ -75,7 +77,7 @@ module GroupedValidations
 
   def _run_group_validation_callbacks(group, context=nil)
     with_validation_context(context) do
-      send(:"_run_validate_#{group}_callbacks")
+      run_callbacks(:"validate_#{group}")
     end
   end
 
